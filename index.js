@@ -33,7 +33,7 @@ app.post("/criar-pagamento", async (req, res) => {
         payment_type: "FIXED_AMOUNT",
         custom: orderId,
         payer_email: email,
-        webhook_url: "https://seuprojeto.railway.app/webhook/bucksbus"
+        webhook_url: "bucksbus-backend-production.up.railway.app"
       },
       {
         headers: {

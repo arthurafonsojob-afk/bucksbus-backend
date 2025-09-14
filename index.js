@@ -1,5 +1,3 @@
-// ✅ BACKEND COMPLETO — index.js com BucksBus + Shopify Webhook
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const axios = require("axios");
@@ -22,7 +20,7 @@ app.post("/webhook/bucksbus", async (req, res) => {
   res.sendStatus(200);
 });
 
-// 🚀 CRIA PAGAMENTO MANUAL (usado pelo script do Shopify, se quiser usar)
+// 🚀 CRIA PAGAMENTO MANUAL
 app.post("/criar-pagamento", async (req, res) => {
   const { orderId, email, valorUSD } = req.body;
   try {
@@ -51,7 +49,7 @@ app.post("/criar-pagamento", async (req, res) => {
   }
 });
 
-// 🧠 WEBHOOK DE PEDIDO CRIADO (APP PRIVADO SHOPIFY)
+// 🧠 WEBHOOK DE PEDIDO CRIADO (SHOPIFY)
 app.post("/shopify/order-created", async (req, res) => {
   const pedido = req.body;
   const valorUSD = parseFloat(pedido.total_price);
@@ -80,11 +78,13 @@ app.post("/shopify/order-created", async (req, res) => {
 
     const payment_url = response.data.payment_url;
     console.log(`✅ Pagamento gerado para o pedido ${orderId}: ${payment_url}`);
+
+    // 🔥 Retorna o link pro Shopify ou pro teste (curl/PowerShell)
+    res.json({ success: true, orderId, payment_url });
   } catch (error) {
     console.error("❌ Erro ao criar pagamento BucksBus:", error.response?.data || error);
+    res.status(500).json({ success: false, error: "Erro ao criar pagamento BucksBus" });
   }
-
-  res.sendStatus(200);
 });
 
 app.listen(PORT, () => {

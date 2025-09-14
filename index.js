@@ -77,10 +77,11 @@ app.post("/shopify/order-created", async (req, res) => {
     );
 
     const payment_url = response.data.payment_url;
-    console.log(`✅ Pagamento gerado para o pedido ${orderId}: ${payment_url}`);
+console.log(`✅ Pagamento gerado para o pedido ${orderId}: ${payment_url}`);
 
-    // 🔥 Retorna o link pro Shopify ou pro teste (curl/PowerShell)
-    res.json({ success: true, orderId, payment_url });
+// 🔥 Retorna o link pro Shopify ou pro teste (curl/PowerShell)
+res.json({ success: true, orderId, payment_url });
+
   } catch (error) {
     console.error("❌ Erro ao criar pagamento BucksBus:", error.response?.data || error);
     res.status(500).json({ success: false, error: "Erro ao criar pagamento BucksBus" });

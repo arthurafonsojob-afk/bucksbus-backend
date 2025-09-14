@@ -1,3 +1,5 @@
+// ✅ BACKEND COMPLETO — index.js com BucksBus + Shopify Webhook
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const axios = require("axios");
@@ -15,12 +17,12 @@ app.post("/webhook/bucksbus", async (req, res) => {
   const { event, payment } = req.body;
   if (event === "payment.complete" && payment.status === "COMPLETE") {
     console.log(`💰 Pagamento confirmado! Pedido: ${payment.custom}`);
-    // Aqui você atualiza o pedido no seu sistema
+    // Aqui você atualiza o pedido no seu sistema (Shopify, banco, etc)
   }
   res.sendStatus(200);
 });
 
-// 🚀 CRIA PAGAMENTO NA BUCKSBUS
+// 🚀 CRIA PAGAMENTO MANUAL (usado pelo script do Shopify, se quiser usar)
 app.post("/criar-pagamento", async (req, res) => {
   const { orderId, email, valorUSD } = req.body;
   try {
@@ -33,7 +35,7 @@ app.post("/criar-pagamento", async (req, res) => {
         payment_type: "FIXED_AMOUNT",
         custom: orderId,
         payer_email: email,
-        webhook_url: "bucksbus-backend-production.up.railway.app"
+        webhook_url: "https://bucksbus-backend-production.up.railway.app/webhook/bucksbus"
       },
       {
         headers: {
@@ -47,6 +49,42 @@ app.post("/criar-pagamento", async (req, res) => {
     console.error("Erro:", err.response?.data || err.message);
     res.status(500).json({ error: "Erro ao criar pagamento" });
   }
+});
+
+// 🧠 WEBHOOK DE PEDIDO CRIADO (APP PRIVADO SHOPIFY)
+app.post("/shopify/order-created", async (req, res) => {
+  const pedido = req.body;
+  const valorUSD = parseFloat(pedido.total_price);
+  const orderId = `order_${pedido.name}`;
+  const email = pedido.email;
+
+  try {
+    const response = await axios.post(
+      "https://api.bucksbus.com/int/payment",
+      {
+        amount: valorUSD,
+        asset_id: "USD",
+        payment_asset_id: "BTC",
+        payment_type: "FIXED_AMOUNT",
+        custom: orderId,
+        payer_email: email,
+        webhook_url: "https://bucksbus-backend-production.up.railway.app/webhook/bucksbus"
+      },
+      {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const payment_url = response.data.payment_url;
+    console.log(`✅ Pagamento gerado para o pedido ${orderId}: ${payment_url}`);
+  } catch (error) {
+    console.error("❌ Erro ao criar pagamento BucksBus:", error.response?.data || error);
+  }
+
+  res.sendStatus(200);
 });
 
 app.listen(PORT, () => {
